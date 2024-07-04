@@ -49,13 +49,11 @@ class ApiController extends Controller
 
     // Login API POST, FORM DATA
     public function login(Request $request){
-        // Data validation
         $request->validate([
             "email" => "required|email",
             "password" => "required"
         ]);
     
-        // JWTAuth and attempt
         $credentials = $request->only('email', 'password');
     
         if (!$token = JWTAuth::attempt($credentials)) { 
@@ -65,7 +63,6 @@ class ApiController extends Controller
             ], 401);
         }
     
-        // Response
         return response()->json([
             "status" => true,
             "message" => "User logged in",
@@ -85,15 +82,24 @@ class ApiController extends Controller
     }
 
     // Refresh token API GET
-    public function refreshToken(){
-        $newToken = auth()-> refresh();
-
-        return response()->json([
-            "status" => true,
-            "message" => "New Access token generated",
-            "token" => $newToken
-        ]);
-        
+    public function refreshToken() {
+        try {
+            $newToken = auth()->refresh();
+            return response()->json([
+                'status' => true,
+                'message' => 'New Access token generated',
+                'token' => $newToken
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to refresh token:', [
+                'message' => $e->getMessage(),
+                'exception' => $e,
+            ]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to refresh token',
+            ], 401);
+        }
     }
 
     // Logout API GET
@@ -104,5 +110,21 @@ class ApiController extends Controller
             "status" => true,
             "message" => "Logout Successful"
         ]);
+    }
+    public function checkToken()
+    {
+        try {
+            $user = Auth::user();
+            return response()->json([
+                'status' => true,
+                'message' => 'Token is valid',
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Token is invalid or expired',
+            ], 401);
+        }
     }
 }

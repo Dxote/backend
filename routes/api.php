@@ -43,5 +43,7 @@ Route::group(
         Route::get("profile", [ApiController::class, "profile"]);
         Route::get("refresh", [ApiController::class, "refreshToken"]);
         Route::get('logout', [ApiController::class, 'logout']);
+        Route::get('check-token', [ApiController::class, 'checkToken']);
     }
 );
+
