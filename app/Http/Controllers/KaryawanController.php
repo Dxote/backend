@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Karyawan;
@@ -6,40 +7,45 @@ use Illuminate\Http\Request;
 
 class KaryawanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $karyawan = Karyawan::all();
+        $perPage = $request->get('per_page', 10);
+        $karyawan = Karyawan::paginate($perPage);
         return response()->json($karyawan);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'phone' => 'required|string|max:15',
+        ]);
+
+        $karyawan = Karyawan::create($request->all());
+
+        return response()->json($karyawan, 201);
     }
 
     public function show($id)
     {
         $karyawan = Karyawan::find($id);
-        return response()->json($karyawan);
-    }
 
-    public function create(Request $request)
-    {
-        $request->validate([
-            'name' => 'required',
-            'address' => 'required',
-            'phone' => 'required',
-        ]);
-
-        $karyawan = Karyawan::create($request->all());
+        if (!$karyawan) {
+            return response()->json(['message' => 'Karyawan not found'], 404);
+        }
 
         return response()->json($karyawan);
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required',
-            'address' => 'required',
-            'phone' => 'required',
-        ]);
-
         $karyawan = Karyawan::find($id);
+
+        if (!$karyawan) {
+            return response()->json(['message' => 'Karyawan not found'], 404);
+        }
+
         $karyawan->update($request->all());
 
         return response()->json($karyawan);
@@ -48,14 +54,13 @@ class KaryawanController extends Controller
     public function delete($id)
     {
         $karyawan = Karyawan::find($id);
+
+        if (!$karyawan) {
+            return response()->json(['message' => 'Karyawan not found'], 404);
+        }
+
         $karyawan->delete();
 
-        return response()->json(['message' => 'Karyawan deleted']);
-    }
-
-    public function getKaryawan()
-    {
-        $karyawan = Karyawan::all();
-        return response()->json($karyawan);
+        return response()->json(['message' => 'Karyawan deleted successfully']);
     }
 }
